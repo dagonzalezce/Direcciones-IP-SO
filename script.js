@@ -29,6 +29,18 @@ function calcular(){
 }
 
 function calcularUnaDireccion(numListDireccionIP1,numListMascaraDeRed){
+	var f;
+	
+	var direccion_red = new Array(numListDireccionIP1.length);
+	for(f=0; f<numListDireccionIP1.length; f++){
+		if (numListDireccionIP1[f]==1 && numListMascaraDeRed[f]==1){
+			direccion_red[f]=1;
+		}
+		else{
+			direccion_red[f]=0;
+		}
+	}
+
 	$('#modalUnaDireccionIP').modal('show');
 }
 
@@ -37,10 +49,15 @@ function calcularDosDirecciones(numListDireccionIP1,numListMascaraDeRed,numListD
 }
 
 //Devuelve un array de 8 posiciones con la equivalencia en binario de un int
-function enBinario(numDecimal){
-	var numString = (numDecimal).toString(2);
-	numString = ("0").repeat(8-numString.length).concat(numString);
-	return numString.split("").map(function (x) { return parseInt(x, 10); });;
+function enBinario(array_dir){
+	var f;
+	var numString2 = "";
+	for(f=0; f<array_dir.length; f++) {
+		var numString = (array_dir[f]).toString(2);
+		numString2 = numString2 + ("0").repeat(8-numString.length).concat(numString);
+
+	}
+	return numString2.split("").map(function (x) { return parseInt(x, 10); });
 }
 
 // Devuelve un array con los cuatro números en decimal (0-255) que hay en un string separados por puntos 
