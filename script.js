@@ -15,7 +15,8 @@ function calcular(){
 		numListMascaraDeRed = dividirStringEnOctetos(inputMascaraDeRed.value);
 		numListDireccionIP1 = enBinario(numListDireccionIP1);
 		numListMascaraDeRed = enBinario(numListMascaraDeRed);
-		console.log(numListDireccionIP1);
+		[dirRed, f, contador] = direccionDeRed(numListDireccionIP1, numListMascaraDeRed);
+		console.log(dirRed, " ",f, " ", contador);
 
 		if (inputDireccionIP2.value.length == 0){
 			calcularUnaDireccion(numListDireccionIP1,numListMascaraDeRed);
@@ -34,24 +35,7 @@ function calcular(){
 
 function calcularUnaDireccion(numListDireccionIP1,numListMascaraDeRed){
 
-	var f;
-	var contador = 0;
-	var direccion_red = new Array(numListDireccionIP1.length);  // array para guardar los digitos de la dirección de red.
-
-	for(f=0; f<numListDireccionIP1.length; f++){
-
-		if (numListMascaraDeRed[f]=="1"){
-			contador++;
-		}
-
-		if (numListDireccionIP1[f]=="1" && numListMascaraDeRed[f]=="1"){
-			direccion_red[f]="1";
-		}
-		else{
-
-			direccion_red[f]="0";
-		}
-	}
+	[new_direccion_red, f, contador] = direccionDeRed(numListDireccionIP1, numListMascaraDeRed);
 
 	var num_unos = 32 - contador ;
 
@@ -59,8 +43,6 @@ function calcularUnaDireccion(numListDireccionIP1,numListMascaraDeRed){
 		numListDireccionIP1[f] = "1";
 	}
 
-
-	var new_direccion_red = direccion_red.join("");
 	var direccion_red_decimal = new Array();        // almacenar los 4 valores que componen la red en decimal
 
 	var direccion_broadcast =numListDireccionIP1.join("");
@@ -93,47 +75,15 @@ function calcularUnaDireccion(numListDireccionIP1,numListMascaraDeRed){
 }
 
 function calcularDosDirecciones(numListDireccionIP1,numListMascaraDeRed,numListDireccionIP2){
-	var f;
-	var contador = 0;
-	var direccion_red1 = new Array(numListDireccionIP1.length);  // array para guardar los digitos de la dirección de red.
-	var direccion_red2 = new Array(numListDireccionIP2.length);
 
-	for(f=0; f<numListDireccionIP1.length; f++){
-
-		if (numListMascaraDeRed[f]=="1"){
-			contador++;
-		}
-
-		//calculando la red de la primera ip
-		if (numListDireccionIP1[f]=="1" && numListMascaraDeRed[f]=="1"){
-			direccion_red1[f]="1";
-		}
-		else{
-
-			direccion_red1[f]="0";
-		}
-
-		//calculando la red de la segunda ip
-		if (numListDireccionIP2[f]=="1" && numListMascaraDeRed[f]=="1"){
-			direccion_red2[f]="1";
-		}
-		else{
-
-			direccion_red2[f]="0";
-		}
-
-
-	}
+	[new_direccion_red1, f, contador] = direccionDeRed(numListDireccionIP1, numListMascaraDeRed);
+	[new_direccion_red2, f, contador] = direccionDeRed(numListDireccionIP2, numListMascaraDeRed);
 
 	var num_unos = 32 - contador ;
 
 	for (f=numListDireccionIP1.length-1; f>=contador; f--){  // para reemplazar lo n últimos por 1 y hallar broadcast.
 		numListDireccionIP1[f] = "1";
 	}
-
-
-	var new_direccion_red1 = direccion_red1.join("");
-	var new_direccion_red2 = direccion_red2.join("");
 
 	var direccion_red_decimal1 = new Array();        // almacenar los 4 valores que componen la red en decimal
 	var direccion_red_decimal2 = new Array();
@@ -180,6 +130,31 @@ function calcularDosDirecciones(numListDireccionIP1,numListMascaraDeRed,numListD
 
 	document.getElementById("dosip").innerText= direccion_final;
 	$('#modalDosDireccionesIP').modal('show');
+}
+
+function direccionDeRed(numListDireccionIP, numListMascaraDeRed){
+	var f;
+	var contador = 0;
+	var direccion_red = new Array(numListDireccionIP.length);  // array para guardar los digitos de la dirección de red.
+
+	for(f=0; f<numListDireccionIP.length; f++){
+
+		if (numListMascaraDeRed[f]=="1"){
+			contador++;
+		}
+
+		if (numListDireccionIP[f]=="1" && numListMascaraDeRed[f]=="1"){
+			direccion_red[f]="1";
+		}
+		else{
+
+			direccion_red[f]="0";
+		}
+	}
+
+	var new_direccion_red = direccion_red.join("");
+
+	return [new_direccion_red, f, contador];
 }
 
 //Devuelve un array de 8 posiciones con la equivalencia en binario de un int
