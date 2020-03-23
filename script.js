@@ -10,109 +10,80 @@ function calcular(){
 	}
 
 	try{
-
-		numListDireccionIP1 = dividirStringEnOctetos(inputDireccionIP1.value);
-		numListMascaraDeRed = dividirStringEnOctetos(inputMascaraDeRed.value);
-		numListDireccionIP1 = enBinario(numListDireccionIP1);
-		numListMascaraDeRed = enBinario(numListMascaraDeRed);
-		[dirRed, f, contador] = direccionDeRed(numListDireccionIP1, numListMascaraDeRed);
-		console.log(dirRed, " ",f, " ", contador);
+		numListDireccionIP1 = enBinario(dividirStringEnOctetos(inputDireccionIP1.value));
+		numListMascaraDeRed = enBinario(dividirStringEnOctetos(inputMascaraDeRed.value));
+	
 
 		if (inputDireccionIP2.value.length == 0){
 
-			direccion_red_decimal2 = calcularUnaDireccion(numListDireccionIP1,numListMascaraDeRed);
-
-			direccion_final = 'Dirección de red: ' + direccion_red_decimal2.slice(0,4).join('.').concat('/' + direccion_red_decimal2[4]) + '\n' +
-												'Dirección de broadcast: ' + direccion_red_decimal2.slice(5,direccion_red_decimal2.length).join('.');
-
-			document.getElementById("unaip").innerText=direccion_final;
-
-			$('#modalUnaDireccionIP').modal('show');
+			mostrarCaracteristicasRed(numListDireccionIP1, numListMascaraDeRed,"unaip",'#modalUnaDireccionIP');
 
 		}else{
+			numListDireccionIP2 = enBinario(dividirStringEnOctetos(inputDireccionIP2.value));
 
-			numListDireccionIP2 = dividirStringEnOctetos(inputDireccionIP2.value);
-			numListDireccionIP2 = enBinario(numListDireccionIP2);
+			if(enLaMismaRed(numListDireccionIP1, numListDireccionIP2, numListMascaraDeRed)){
+				mostrarCaracteristicasRed(numListDireccionIP1, numListMascaraDeRed, "dosip", '#modalDosDireccionesIP');
+			}else{
+				throw "Las direcciones IP no pertenecen a la misma red"
+			}
 
-			numListDireccionIP1 = calcularUnaDireccion(numListDireccionIP1,numListMascaraDeRed);
-			numListDireccionIP2 = calcularUnaDireccion(numListDireccionIP2,numListMascaraDeRed);
-
-			mensaje_final = calcularDosDirecciones(numListDireccionIP1,numListDireccionIP2);
-
-
-
-			document.getElementById("dosip").innerText= mensaje_final;
-			$('#modalDosDireccionesIP').modal('show');
 
 		}
 
 	}catch(error){
+		console.log(error);
 		document.getElementById("mensaje").innerText=error;
 		$('#modalMensaje').modal('show');
 	}
 }
 
+function mostrarCaracteristicasRed(numListDireccionIP, numListMascaraDeRed, modalElementName, modalName ){
+	[direccion_red_decimal, contador, broadcast] = calcularRed(numListDireccionIP,numListMascaraDeRed);
 
-function calcularUnaDireccion(numListDireccionIP1,numListMascaraDeRed){
+	direccion_final = 'Dirección de red: ' + direccion_red_decimal.join('.').concat('/' + contador) + '\n' +
+						'Dirección de broadcast: ' + broadcast.join('.')+ '\n' +
+						'Número máximo de usuarios: '+ numeroDeUsuarios(contador);
+	document.getElementById(modalElementName).innerText=direccion_final;
+
+	$(modalName).modal('show');
+}
+
+function numeroDeUsuarios(contador){
+	return Math.pow(2, 32-contador); 
+}
+
+function calcularRed(numListDireccionIP1,numListMascaraDeRed){
 
 	[new_direccion_red, f, contador] = direccionDeRed(numListDireccionIP1, numListMascaraDeRed);
 
-	var num_unos = 32 - contador ;
+	direccion_broadcast = direccionDeBroadcast(contador, numListDireccionIP1);
 
-	for (f=numListDireccionIP1.length-1; f>=contador; f--){  // para reemplazar lo n últimos por 1 y hallar broadcast.
-		numListDireccionIP1[f] = "1";
-	}
+	var direccion_red_decimal = enDecimal(new_direccion_red);
+	var direccion_broadcast_dec = enDecimal(direccion_broadcast);
 
-	var direccion_red_decimal = new Array();        // almacenar los 4 valores que componen la red en decimal
-
-	var direccion_broadcast =numListDireccionIP1.join("");
-	var direccion_broadcast_dec = new Array();  // para almacenar los 4 valores que componen el broadcast
-
-	for (f=0; f<new_direccion_red.length; f+=8){
-		direccion_red_decimal.push(new_direccion_red.substring(f,f+8));
-		direccion_broadcast_dec.push(direccion_broadcast.substring(f,f+8));
-
-	}
-
-	var direccion_red_decimal2 = new Array();
-	var direccion_broadcast_dec2 = new Array();
-
-	for(f=0; f<direccion_red_decimal.length; f++){  // guardar los elemntos en decimal
-		var dir_decimal = parseInt(direccion_red_decimal[f], 2);
-		var dir_broadcast = parseInt(direccion_broadcast_dec[f], 2);
-		direccion_red_decimal2.push(dir_decimal);
-		direccion_broadcast_dec2.push(dir_broadcast);
-	}
-
-
-	direccion_red_decimal2.push(contador);
-
-	for(f=0; f<direccion_broadcast_dec2.length;f++){
-		direccion_red_decimal2.push(direccion_broadcast_dec2[f]);
-	}
-
-	return direccion_red_decimal2;
-
+	return [direccion_red_decimal, contador, direccion_broadcast_dec];
 }
 
-function calcularDosDirecciones(numListDireccionIP1,numListDireccionIP2){
+function enLaMismaRed(numListDireccionIP1, numListDireccionIP2, numListMascaraDeRed){
+
+	var redIP1Decimal = direccionDeRed(numListDireccionIP1, numListMascaraDeRed);
+	var redIP2Decimal = direccionDeRed(numListDireccionIP2, numListMascaraDeRed);
+
 	var f;
 	var igual = 0;
 
 	for (f=0; f<4; f++){
-
-		if (numListDireccionIP1[f] == numListDireccionIP2[f]){
+		if (redIP1Decimal[f] == redIP2Decimal[f]){
 			igual ++;
 		}
-		if (igual==4){
-			var direccion_final = 'Dirección de red: ' + numListDireccionIP1.slice(0,4).join('.').concat('/' + numListDireccionIP1[4]) + '\n' +
-													'Dirección de broadcast: ' + numListDireccionIP1.slice(5,numListDireccionIP1.length).join('.');
-		}
-		else{
-			direccion_final = 'Las redes no pertenecen a la misma red';
-		}
 	}
-	return direccion_final;
+
+	if (igual==4){
+		return true;
+	}
+	else{
+		return false;
+	}
 }
 
 function direccionDeRed(numListDireccionIP, numListMascaraDeRed){
@@ -138,6 +109,34 @@ function direccionDeRed(numListDireccionIP, numListMascaraDeRed){
 	var new_direccion_red = direccion_red.join("");
 
 	return [new_direccion_red, f, contador];
+}
+
+function direccionDeBroadcast (contador, numListDireccionIP) {
+	var f;
+
+	for (f=numListDireccionIP.length-1; f>=contador; f--){  // para reemplazar lo n últimos por 1 y hallar broadcast.
+		numListDireccionIP[f] = "1";
+	}
+
+	var direccion_broadcast =numListDireccionIP.join("");
+
+	return direccion_broadcast;
+}
+
+function enDecimal(enBinario){
+	var enDecimal = new Array();        // almacenar los 4 valores que componen la red en decimal
+
+	for (var f=0; f<enBinario.length; f+=8){
+		enDecimal.push(enBinario.substring(f,f+8));
+	}
+
+	var enDecimal2 = new Array();
+
+	for(var f=0; f<enDecimal.length; f++){  // guardar los elemntos en decimal
+		enDecimal2.push(parseInt(enDecimal[f], 2));
+	}
+
+	return enDecimal2;
 }
 
 //Devuelve un array de 8 posiciones con la equivalencia en binario de un int
