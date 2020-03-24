@@ -49,7 +49,7 @@ function mostrarCaracteristicasRed(numListDireccionIP, numListMascaraDeRed, moda
 }
 
 function numeroDeUsuarios(contador){
-	return Math.pow(2, 32-contador); 
+	return Math.pow(2, 32-contador)-2; 
 }
 
 function calcularRed(numListDireccionIP1,numListMascaraDeRed){
